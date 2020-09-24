@@ -120,7 +120,7 @@
       (every? number? (vals attrs-a)) ;; can’t conj into BTSetIter
       (let [idxb->idxa (vec (for [[sym idx-b] attrs-b]
                               [idx-b (attrs-a sym)]))
-            tlen    (->> (vals attrs-a) (reduce max) (inc)) 
+            tlen    (->> (vals attrs-a) (reduce max) (inc))
             tuples' (persistent!
                       (reduce
                         (fn [acc tuple-b]
@@ -186,14 +186,14 @@
 (defn- and-fn [& args]
   (reduce (fn [a b]
             (if b b (reduced b))) true args))
-            
+
 (defn- or-fn [& args]
   (reduce (fn [a b]
             (if b (reduced b) b)) nil args))
 
 (def built-ins {
   '= =, '== ==, 'not= not=, '!= not=, '< <, '> >, '<= <=, '>= >=, '+ +, '- -,
-  '* *, '/ /, 'quot quot, 'rem rem, 'mod mod, 'inc inc, 'dec dec, 'max max, 'min min,
+  '* *, '/ /, 'quot quot, 'rem rem, 'mod mod, 'inc inc, 'dec dec, 'max max, 'min min, 'get get,
   'zero? zero?, 'pos? pos?, 'neg? neg?, 'even? even?, 'odd? odd?, 'compare compare,
   'rand rand, 'rand-int rand-int,
   'true? true?, 'false? false?, 'nil? nil?, 'some? some?, 'not not, 'and and-fn, 'or or-fn,
@@ -228,8 +228,8 @@
                                  :let [delta (- x mean)]]
                              (* delta delta)))]
              (/ sum (count coll))))
-         (stddev 
-           [coll] 
+         (stddev
+           [coll]
            (#?(:cljs js/Math.sqrt :clj Math/sqrt) (variance coll)))]
    {'avg      avg
     'median   median
@@ -295,11 +295,11 @@
   BindIgnore
   (in->rel [_ _]
     (prod-rel))
-  
+
   BindScalar
   (in->rel [binding value]
     (Relation. {(get-in binding [:variable :symbol]) 0} [(into-array [value])]))
-  
+
   BindColl
   (in->rel [binding coll]
     (cond
@@ -312,7 +312,7 @@
         (->> coll
           (map #(in->rel (:binding binding) %))
           (reduce sum-rel))))
-  
+
   BindTuple
   (in->rel [binding coll]
     (cond
@@ -505,7 +505,7 @@
         tuples-args (da/make-array len)]
     (dotimes [i len]
       (let [arg (nth args i)]
-        (if (symbol? arg) 
+        (if (symbol? arg)
           (if-some [source (get sources arg)]
             (da/aset static-args i source)
             (da/aset tuples-args i (get attrs arg)))
@@ -768,31 +768,31 @@
      (do
        (check-bound (bound-vars context) (filter free-var? (nfirst clause)) clause)
        (filter-by-pred context clause))
-     
+
      [[symbol? '*] '_] ;; function [(fn ?a ?b) ?res]
      (do
        (check-bound (bound-vars context) (filter free-var? (nfirst clause)) clause)
        (bind-by-fn context clause))
-     
+
      [source? '*] ;; source + anything
      (let [[source-sym & rest] clause]
        (binding [*implicit-source* (get (:sources context) source-sym)]
          (-resolve-clause context rest clause)))
-     
+
      '[or *] ;; (or ...)
      (let [[_ & branches] clause
            _        (check-free-same (bound-vars context) branches clause)
            contexts (map #(resolve-clause context %) branches)
            rels     (map #(reduce hash-join (:rels %)) contexts)]
        (assoc (first contexts) :rels [(reduce sum-rel rels)]))
-     
+
      '[or-join [[*] *] *] ;; (or-join [[req-vars] vars] ...)
      (let [[_ [req-vars & vars] & branches] clause
            bound (bound-vars context)]
        (check-bound bound req-vars orig-clause)
        (check-free-subset bound vars branches)
        (recur context (list* 'or-join (concat req-vars vars) branches) clause))
-     
+
      '[or-join [*] *] ;; (or-join [vars] ...)
      (let [[_ vars & branches] clause
            vars         (set vars)
@@ -802,11 +802,11 @@
            rels         (map #(reduce hash-join (:rels %)) contexts)
            sum-rel      (reduce sum-rel rels)]
        (update context :rels collapse-rels sum-rel))
-     
+
      '[and *] ;; (and ...)
      (let [[_ & clauses] clause]
        (reduce resolve-clause context clauses))
-     
+
      '[not *] ;; (not ...)
      (let [[_ & clauses] clause
            bound            (bound-vars context)
@@ -821,7 +821,7 @@
                               (single (:rels context'))
                               (reduce hash-join (:rels negation-context)))]
        (assoc context' :rels [negation]))
-     
+
      '[not-join [*] *] ;; (not-join [vars] ...)
      (let [[_ vars & clauses] clause
            bound            (bound-vars context)
@@ -834,7 +834,7 @@
                               (single (:rels context'))
                               (reduce hash-join (:rels negation-context)))]
        (assoc context' :rels [negation]))
-     
+
      '[*] ;; pattern
      (let [source   *implicit-source*
            pattern  (resolve-pattern-lookup-refs source clause)
